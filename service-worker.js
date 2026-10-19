@@ -1,5 +1,5 @@
 const CACHE_NAME = 'barakah-market-v2';
-const APP_SHELL = ['./', './index.html', './style.css', './app.js', './marketplace.js', './supabase-config.js', './manifest.json', './icon.svg', './icons/icon-192.webp', './icons/icon-512.webp'];
+const APP_SHELL = ['./', './index.html', './style.css?v=marketplace-safety-20261019', './app.js', './marketplace.js?v=reports-20261019', './supabase-config.js', './manifest.json', './icon.svg', './icons/icon-192.webp', './icons/icon-512.webp'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
