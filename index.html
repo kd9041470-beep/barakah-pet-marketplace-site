@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بَرَكَة | سوق الحيوانات الأليفة ومستلزماتها</title>
+    <meta name="description" content="تبنَّ قطتك أو كلبك القادم، وابحث عن مستلزمات الحيوانات وتبرعات الطعام القريبة منك.">
+    <meta name="color-scheme" content="dark">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#06150c">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet CSS with a CDN fallback -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+          onerror="this.onerror=null;this.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';" />
+    <!-- Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"
+          onerror="this.onerror=null;this.href='https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css';" />
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <!-- Leaflet JS with a CDN fallback -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
+            onerror="this.onerror=null;this.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';"></script>
+    <!-- Leaflet Routing Machine with a CDN fallback -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"
+            onerror="this.onerror=null;this.src='https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js';"></script>
+</head>
+<body>
+
+    <header class="market-header">
+        <a class="market-brand" href="#marketView" aria-label="بركة، الرئيسية">
+            <span class="market-brand-icon"><i class="fa-solid fa-paw"></i></span>
+            <span><strong>بَرَكَة</strong><small>سوق الحيوانات الأليفة والمستلزمات</small></span>
+        </a>
+        <span class="market-free-label"><i class="fa-solid fa-heart"></i> مجاني للجميع</span>
+    </header>
+
+    <main id="marketView" class="market-view">
+        <section class="market-hero" aria-labelledby="marketHeroTitle">
+            <div class="hero-copy">
+                <span class="hero-eyebrow"><i class="fa-solid fa-heart"></i> كل ما يحتاجه صديقك الأليف في مكان واحد</span>
+                <h1 id="marketHeroTitle">رفيق جديد،<br><em>وحياة أجمل.</em></h1>
+                <p>تبنَّ بحب، شارك ما لا تحتاجه، وساعد حيوانًا في الوصول إلى بيت آمن.</p>
+                <button type="button" class="hero-cta" data-open-listing><i class="fa-solid fa-plus"></i> أضف إعلانًا مجانيًا</button>
+            </div>
+            <div class="hero-art" aria-hidden="true"><div class="hero-orbit"></div><div class="hero-paw"><i class="fa-solid fa-paw"></i></div><span class="hero-spark spark-one">✦</span><span class="hero-spark spark-two">✦</span><span class="hero-art-caption">مكان آمن لكل حكاية</span></div>
+        </section>
+
+        <section class="market-search" aria-label="البحث في الإعلانات">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input id="marketSearch" type="search" placeholder="ابحث عن قطة، كلب، طعام، ألعاب..." aria-label="ابحث عن إعلان">
+            <button id="marketSearchButton" type="button">بحث</button>
+        </section>
+
+        <section class="market-section" aria-labelledby="marketSectionTitle">
+            <div class="market-section-head">
+                <div><span class="section-kicker">اكتشف ما يناسبك</span><h2 id="marketSectionTitle">كل المعروض</h2></div>
+                <div class="market-sort"><button class="sort-chip is-selected" type="button" data-sort="newest">الأحدث</button></div>
+            </div>
+            <div class="market-categories" role="group" aria-label="تصفية حسب النوع">
+                <button class="category-chip is-active" type="button" data-category="all"><i class="fa-solid fa-border-all"></i><span>كل المعروض</span></button>
+                <button class="category-chip" type="button" data-category="cat"><i class="fa-solid fa-cat"></i><span>قطط للتبني</span></button>
+                <button class="category-chip" type="button" data-category="dog"><i class="fa-solid fa-dog"></i><span>كلاب للتبني</span></button>
+                <button class="category-chip" type="button" data-category="supply"><i class="fa-solid fa-box-open"></i><span>أدوات ومستلزمات</span></button>
+                <button class="category-chip" type="button" data-category="food"><i class="fa-solid fa-map-location-dot"></i><span>خريطة إشارات الطعام</span></button>
+            </div>
+            <div id="marketListings" class="market-listings" aria-live="polite"><div class="market-empty"><i class="fa-solid fa-paw"></i><strong>نجهّز الإعلانات...</strong></div></div>
+            <div id="marketCount" class="market-count" aria-live="polite"></div>
+        </section>
+
+        <section class="market-trust" aria-label="قيم بركة">
+            <div><i class="fa-solid fa-shield-heart"></i><span><strong>تبنٍّ بمسؤولية</strong><small>ابدأ بحوار واضح واسأل عن الرعاية والصحة.</small></span></div>
+            <div><i class="fa-brands fa-whatsapp"></i><span><strong>تواصل مباشر</strong><small>تواصل مع صاحب الإعلان عبر واتساب.</small></span></div>
+            <div><i class="fa-solid fa-hand-holding-heart"></i><span><strong>الخير أقرب</strong><small>شارك مستلزماتك وفائض الطعام مع من يحتاج.</small></span></div>
+        </section>
+    </main>
+
+    <main id="foodView" class="food-view" hidden>
+        <!-- Left: Role Panels -->
+        <div class="dashboard-content">
+
+            <!-- DONOR PANEL -->
+            <div id="donorPanel" style="display:none;">
+                <div class="glass-card">
+                    <h2 class="section-title" style="color:var(--color-donor);">
+                        <i class="fa-solid fa-file-signature"></i> إرسال إشارة تبرع جديدة
+                    </h2>
+                    <form id="signalForm">
+                        <div class="donor-grid">
+                            <div>
+                                <div class="form-group">
+                                    <label>عنوان الإشارة</label>
+                    <input type="text" id="signalTitle" class="input-style" required maxlength="100" placeholder="مثال: بقايا لحم طازجة">
+                                </div>
+                                <div class="form-group">
+                                    <label>تصنيف الطعام</label>
+                                    <select id="foodType" class="input-style">
+                                        <option value="mixed">بقايا مختلطة</option>
+                                        <option value="bones">عظام وشحوم</option>
+                                        <option value="meat">قطع لحم وأحشاء</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>صورة (اختياري)</label>
+                                    <input type="file" id="signalImage" class="input-style" accept="image/*">
+                                </div>
+                            </div>
+                            <div>
+                                <div class="form-group">
+                                    <label>الوزن التقريبي (كجم)</label>
+                    <input type="number" id="signalWeight" class="input-style" required min="1" max="5000" value="5">
+                                </div>
+                                <div class="form-group">
+                                    <label>وقت الصلاحية (ساعات)</label>
+                                    <input type="number" id="signalExpiry" class="input-style" required min="1" max="72" value="2">
+                                </div>
+                                <div class="form-group">
+                                    <label>الموقع</label>
+                                    <button type="button" id="btnGetLocation" class="btn-secondary" style="width:100%; margin-bottom:0.5rem;">
+                                        <i class="fa-solid fa-location-crosshairs"></i> تحديد موقعي الحالي
+                                    </button>
+                                    <small id="locationStatus" style="color:var(--color-success); display:none;">✅ تم تحديد الموقع</small>
+                                    <input type="hidden" id="signalLat">
+                                    <input type="hidden" id="signalLng">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary" id="btnSendSignal" style="width:100%; margin-top:1rem;">
+                            <i class="fa-solid fa-paper-plane"></i> إرسال إشارة بث للمناديب
+                        </button>
+                    </form>
+                </div>
+                <div class="glass-card signal-management-card">
+                    <h2 class="section-title"><i class="fa-solid fa-boxes-stacked"></i> تبرعاتي</h2>
+                    <div class="tasks-container" id="donorSignalsList">
+                        <div class="empty-state"><p>جاري تحميل تبرعاتك...</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BREEDER/COLLECTOR PANEL -->
+            <div id="tasksPanel" style="display:none;">
+                <div class="glass-card">
+                    <h2 class="section-title" style="color:var(--color-collector);">
+                        <i class="fa-solid fa-list-check"></i> الإشارات المتاحة قريباً منك
+                    </h2>
+                    <div class="tasks-container" id="tasksList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fa-solid fa-spinner fa-spin"></i></div>
+                            <p>جاري التحميل...</p>
+                        </div>
+                    </div>
+                    <h2 class="section-title accepted-section-title"><i class="fa-solid fa-truck-fast"></i> بانتظار الاستلام</h2>
+                    <div class="tasks-container" id="acceptedSignalsList">
+                        <div class="empty-state"><p>لا توجد تبرعات قبلتها بعد.</p></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right: Map -->
+        <div class="dashboard-content">
+            <div class="glass-card" style="height:100%;">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-map-location-dot"></i> خريطة بركة المباشرة
+                </h2>
+                <div class="map-stage" style="height:calc(100vh - 200px); min-height:400px; border-radius:var(--radius); overflow:hidden;">
+                    <div id="realMap" role="application" aria-label="خريطة التبرعات النشطة" style="width:100%; height:100%;"></div>
+                    <p id="publicFoodMapNotice" class="public-map-notice" hidden>ستظهر هنا إشارات الطعام القريبة. الإشارات الحالية محفوظة بخصوصية لأصحاب الحسابات والمربين.</p>
+                    <div id="mapFallback" class="map-fallback" hidden>
+                        <div class="map-fallback-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+                        <strong>تعذّر تحميل الخريطة داخل التطبيق</strong>
+                        <p id="mapFallbackMessage">يمكنك فتح الموقع على خرائط Google.</p>
+                        <a id="mapFallbackLink" class="btn-primary" href="https://www.google.com/maps/search/?api=1&query=24.7136%2C46.6753" target="_blank" rel="noopener noreferrer">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> فتح خرائط Google
+                        </a>
+                        <button id="retryMapButton" class="btn-secondary" type="button">
+                            <i class="fa-solid fa-rotate-right"></i> إعادة المحاولة
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer"><span>بَرَكَة</span><span>الرِّفق بالحيوان يبدأ بخطوة، والتواصل يتم مباشرة عبر واتساب.</span></footer>
+
+    <nav class="mobile-market-nav" aria-label="التنقل الرئيسي">
+        <button class="is-active" type="button" data-nav="all"><i class="fa-solid fa-border-all"></i><span>كل المعروض</span></button>
+        <button type="button" data-nav="cat"><i class="fa-solid fa-cat"></i><span>قطط للتبني</span></button>
+        <button type="button" data-nav="dog"><i class="fa-solid fa-dog"></i><span>كلاب للتبني</span></button>
+        <button type="button" data-nav="supply"><i class="fa-solid fa-box-open"></i><span>مستلزمات</span></button>
+        <button type="button" data-nav="food"><i class="fa-solid fa-map-location-dot"></i><span>خريطة الطعام</span></button>
+    </nav>
+
+    <div id="listingModal" class="listing-modal" hidden>
+        <div class="listing-modal-backdrop" data-close-listing></div>
+        <section class="listing-dialog" role="dialog" aria-modal="true" aria-labelledby="listingModalTitle">
+            <button class="listing-close" type="button" data-close-listing aria-label="إغلاق"><i class="fa-solid fa-xmark"></i></button>
+            <span class="section-kicker">إعلان مجاني</span><h2 id="listingModalTitle">شارك خيرًا مع مجتمعك</h2>
+            <p>لا تحتاج إلى حساب. أضف معلومات واضحة وصورة إن أمكن؛ سيظهر إعلانك مباشرة للجميع.</p>
+            <form id="listingForm">
+                <div class="listing-form-grid">
+                    <label>نوع الإعلان<select id="listingType" required><option value="cat">قطة للتبني</option><option value="dog">كلب للتبني</option><option value="supply">أداة أو مستلزم</option></select></label>
+                    <label>اسم الإعلان<input id="listingTitle" required maxlength="100" placeholder="مثال: لولو تبحث عن بيت آمن"></label>
+                    <label class="pet-only-field">العمر<input id="listingAge" maxlength="40" placeholder="مثال: 4 أشهر"></label>
+                    <label class="pet-only-field">الجنس<select id="listingGender"><option value="unknown">غير محدد</option><option value="male">ذكر</option><option value="female">أنثى</option></select></label>
+                    <label>المدينة / الحي<input id="listingCity" required maxlength="100" placeholder="مثال: تيارت"></label>
+                    <label>رقم واتساب<input id="listingPhone" required maxlength="20" inputmode="tel" dir="ltr" placeholder="+213..."></label>
+                    <label class="listing-wide">التفاصيل<textarea id="listingDescription" required maxlength="700" rows="3" placeholder="اكتب وصفًا صادقًا ومفيدًا..."></textarea></label>
+                    <label class="listing-wide">رابط صورة (اختياري)<input id="listingImageUrl" type="url" maxlength="500" dir="ltr" placeholder="https://example.com/photo.jpg"></label>
+                </div>
+                <button id="listingSubmit" class="hero-cta listing-submit" type="submit"><i class="fa-solid fa-paper-plane"></i> نشر الإعلان</button>
+                <small class="listing-privacy-note">سيظهر رقم واتساب الذي أدخلته للجميع مع الإعلان فور نشره. لا نرسل رسائل SMS.</small>
+            </form>
+        </section>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div id="fileModeNotice" class="file-mode-notice" role="alert" hidden>
+        <div class="map-fallback-icon"><i class="fa-solid fa-globe"></i></div>
+        <strong>شغّلت التطبيق كملف HTML مباشر</strong>
+        <p>هذه الطريقة تمنع الخريطة وبعض خدمات التطبيق من العمل بشكل صحيح. أغلق هذه الصفحة وشغّل <b>start-app.bat</b> من مجلد التطبيق.</p>
+        <p>سيفتح المشغّل التطبيق على عنوان محلي آمن للخريطة والاتصال بالخدمات.</p>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="marketplace.js"></script>
+</body>
+</html>
