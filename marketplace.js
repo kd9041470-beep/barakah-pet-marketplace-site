@@ -24,7 +24,47 @@
     const closeModal = () => { modal.hidden = true; document.body.classList.remove('modal-open'); };
     document.querySelectorAll('[data-open-listing]').forEach(button => button.addEventListener('click', openModal));
     document.querySelectorAll('[data-close-listing]').forEach(button => button.addEventListener('click', closeModal));
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') closeModal(); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeModal(); closeReportModal(); } });
+
+    const reportModal = document.getElementById('reportModal');
+    const closeReportModal = () => { if (reportModal) reportModal.hidden = true; };
+    document.querySelectorAll('[data-close-report]').forEach(button => button.addEventListener('click', closeReportModal));
+    document.getElementById('marketListings')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-report-listing]');
+        if (!button || !reportModal) return;
+        document.getElementById('reportListingId').value = button.dataset.reportListing;
+        document.getElementById('reportListingTitle').textContent = button.dataset.listingTitle;
+        reportModal.hidden = false;
+        setTimeout(() => document.getElementById('reportReason')?.focus(), 0);
+    });
+
+    document.getElementById('reportForm')?.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (!db) { toast('تعذر الاتصال بالخدمة. حاول مرة أخرى لاحقًا.'); return; }
+        const button = document.getElementById('reportSubmit');
+        const payload = {
+            listing_id: document.getElementById('reportListingId').value,
+            listing_title: document.getElementById('reportListingTitle').textContent.trim(),
+            reason: document.getElementById('reportReason').value,
+            details: document.getElementById('reportDetails').value.trim() || null,
+            reporter_contact: document.getElementById('reporterContact').value.trim() || null
+        };
+        button.disabled = true;
+        button.textContent = 'جارٍ إرسال البلاغ...';
+        try {
+            const { error } = await db.from('market_listing_reports').insert(payload);
+            if (error) throw error;
+            document.getElementById('reportForm').reset();
+            closeReportModal();
+            toast('تم إرسال البلاغ. الإبلاغ لا يحذف الإعلان تلقائيًا.');
+        } catch (error) {
+            console.error('Listing report submission failed:', error);
+            toast('تعذر إرسال البلاغ. حاول مرة أخرى لاحقًا.');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = '<i class="fa-solid fa-flag"></i> إرسال البلاغ';
+        }
+    });
 
     function draw() {
         const host = document.getElementById('marketListings');
@@ -51,12 +91,15 @@
             const action = phone && !demo
                 ? `<a class="market-card-contact" href="https://wa.me/${phone}?text=${encodeURIComponent(`السلام عليكم، تواصلت معك بخصوص إعلان «${row.title}» في بركة.`)}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> تواصل عبر الواتساب</a>`
                 : '<button class="market-card-contact demo-button" type="button" disabled><i class="fa-solid fa-eye"></i> مثال للعرض فقط</button>';
+            const reportAction = phone && !demo
+                ? `<button class="market-card-report" type="button" data-report-listing="${safe(row.id)}" data-listing-title="${safe(row.title)}"><i class="fa-solid fa-flag"></i> إبلاغ / طلب إزالة</button>`
+                : '';
             const image = row.image_url && /^https:\/\//i.test(row.image_url)
                 ? `<img src="${safe(row.image_url)}" alt="${safe(row.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="market-card-fallback" hidden><i class="fa-solid ${itemIcon}"></i></span>`
                 : `<span class="market-card-fallback"><i class="fa-solid ${itemIcon}"></i></span>`;
-            return `<article class="market-card"><div class="market-card-media">${image}<span class="market-card-badge${demo?' demo':''}">${demo?'عرض توضيحي · ':''}${itemLabel}</span></div><div class="market-card-content"><div class="market-card-title-row"><h3>${safe(row.title)}</h3><span class="market-card-price">${row.item_type==='supply'?'مجاني':'للتبني'}</span></div><div class="market-card-tags"><span class="market-tag">${safe(age)}</span><span class="market-tag gender">${safe(gender)}</span><span class="market-tag"><i class="fa-solid fa-location-dot"></i> ${safe(row.city)}</span></div><p class="market-card-description">${safe(row.description)}</p>${action}</div></article>`;
+            return `<article class="market-card"><div class="market-card-media">${image}<span class="market-card-badge${demo?' demo':''}">${demo?'عرض توضيحي · ':''}${itemLabel}</span></div><div class="market-card-content"><div class="market-card-title-row"><h3>${safe(row.title)}</h3><span class="market-card-price">${row.item_type==='supply'?'مجاني':'للتبني'}</span></div><div class="market-card-tags"><span class="market-tag">${safe(age)}</span><span class="market-tag gender">${safe(gender)}</span><span class="market-tag"><i class="fa-solid fa-location-dot"></i> ${safe(row.city)}</span></div><p class="market-card-description">${safe(row.description)}</p>${action}${reportAction}</div></article>`;
         }).join('');
-        count.textContent = demo ? 'أمثلة توضيحية للتصميم — ستظهر إعلانات المجتمع بعد مراجعتها ونشرها.' : `${visible.length} إعلان متاح`;
+        count.textContent = demo ? 'أمثلة توضيحية للتصميم — الإعلانات الحقيقية تظهر فور نشرها.' : `${visible.length} إعلان متاح`;
     }
 
     async function load() {

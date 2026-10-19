@@ -1,4 +1,4 @@
-const CACHE_NAME = 'barakah-market-v1';
+const CACHE_NAME = 'barakah-market-v2';
 const APP_SHELL = ['./', './index.html', './style.css', './app.js', './marketplace.js', './supabase-config.js', './manifest.json', './icon.svg', './icons/icon-192.webp', './icons/icon-512.webp'];
 
 self.addEventListener('install', event => {

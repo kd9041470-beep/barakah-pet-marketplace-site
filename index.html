@@ -176,7 +176,7 @@
                 </h2>
                 <div class="map-stage" style="height:calc(100vh - 200px); min-height:400px; border-radius:var(--radius); overflow:hidden;">
                     <div id="realMap" role="application" aria-label="خريطة التبرعات النشطة" style="width:100%; height:100%;"></div>
-                    <p id="publicFoodMapNotice" class="public-map-notice" hidden>ستظهر هنا إشارات الطعام القريبة. الإشارات الحالية محفوظة بخصوصية لأصحاب الحسابات والمربين.</p>
+                    <p id="publicFoodMapNotice" class="public-map-notice" hidden>ميزة إشارات الطعام تتطلب حسابات معتمدة غير متاحة في هذه النسخة العامة. لا تعرض الخريطة إشارات حاليًا؛ يمكنك تصفح الإعلانات والتواصل عبر واتساب.</p>
                     <div id="mapFallback" class="map-fallback" hidden>
                         <div class="map-fallback-icon"><i class="fa-solid fa-map-location-dot"></i></div>
                         <strong>تعذّر تحميل الخريطة داخل التطبيق</strong>
@@ -194,6 +194,13 @@
     </main>
 
     <footer class="app-footer"><span>بَرَكَة</span><span>الرِّفق بالحيوان يبدأ بخطوة، والتواصل يتم مباشرة عبر واتساب.</span></footer>
+    <details class="market-legal">
+        <summary>الخصوصية والاستخدام الآمن</summary>
+        <div>
+            <p>لا يتطلب النشر حسابًا، ويظهر الإعلان فور إرساله. رقم واتساب والمدينة والوصف والصورة المرتبطة بالإعلان تصبح متاحة للزوار. لا تكتب عنوان منزلك أو معلومات شخصية لا تريد نشرها.</p>
+            <p>بركة منصة إعلانات ولا تتحقق من هوية المعلنين أو صحة المعلومات. تواصل بحذر، وتحقق من صحة الحيوان ومستلزماته، ورتّب اللقاء في مكان آمن. يمكنك الإبلاغ عن إعلان أو طلب إزالته؛ البلاغ لا يحذفه تلقائيًا.</p>
+        </div>
+    </details>
 
     <nav class="mobile-market-nav" aria-label="التنقل الرئيسي">
         <button class="is-active" type="button" data-nav="all"><i class="fa-solid fa-border-all"></i><span>كل المعروض</span></button>
@@ -208,7 +215,7 @@
         <section class="listing-dialog" role="dialog" aria-modal="true" aria-labelledby="listingModalTitle">
             <button class="listing-close" type="button" data-close-listing aria-label="إغلاق"><i class="fa-solid fa-xmark"></i></button>
             <span class="section-kicker">إعلان مجاني</span><h2 id="listingModalTitle">شارك خيرًا مع مجتمعك</h2>
-            <p>لا تحتاج إلى حساب. أضف معلومات واضحة وصورة إن أمكن؛ سيظهر إعلانك مباشرة للجميع.</p>
+            <p>لا تحتاج إلى حساب أو موافقة مسبقة. راجع البيانات قبل الإرسال؛ سيظهر الإعلان مباشرة، ويمكنك الإبلاغ عنه لاحقًا إذا خالف الإرشادات.</p>
             <form id="listingForm">
                 <div class="listing-form-grid">
                     <label>نوع الإعلان<select id="listingType" required><option value="cat">قطة للتبني</option><option value="dog">كلب للتبني</option><option value="supply">أداة أو مستلزم</option></select></label>
@@ -221,7 +228,42 @@
                     <label class="listing-wide">رابط صورة (اختياري)<input id="listingImageUrl" type="url" maxlength="500" dir="ltr" placeholder="https://example.com/photo.jpg"></label>
                 </div>
                 <button id="listingSubmit" class="hero-cta listing-submit" type="submit"><i class="fa-solid fa-paper-plane"></i> نشر الإعلان</button>
-                <small class="listing-privacy-note">سيظهر رقم واتساب الذي أدخلته للجميع مع الإعلان فور نشره. لا نرسل رسائل SMS.</small>
+                <label class="listing-consent"><input id="listingPhoneConsent" type="checkbox" required><span>أوافق على نشر رقم واتساب هذا علنًا مع الإعلان، وأفهم أن الإعلان سيظهر مباشرة دون مراجعة مسبقة.</span></label>
+                <small class="listing-privacy-note">لا نرسل رسائل SMS. لن يظهر الإعلان ما لم تؤكد موافقتك على إظهار الرقم.</small>
+            </form>
+        </section>
+    </div>
+
+    <div id="reportModal" class="listing-modal" hidden>
+        <div class="listing-modal-backdrop" data-close-report></div>
+        <section class="listing-dialog report-dialog" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+            <button class="listing-close" type="button" data-close-report aria-label="إغلاق"><i class="fa-solid fa-xmark"></i></button>
+            <span class="section-kicker">بلاغ عن إعلان</span>
+            <h2 id="reportModalTitle">ساعدنا على إبقاء بركة آمنة</h2>
+            <p>الإعلان: <strong id="reportListingTitle"></strong></p>
+            <form id="reportForm">
+                <input id="reportListingId" type="hidden">
+                <div class="report-form-grid">
+                    <label>سبب البلاغ
+                        <select id="reportReason" required>
+                            <option value="">اختر السبب</option>
+                            <option value="spam">إعلان مزعج أو مكرر</option>
+                            <option value="misleading">معلومات مضللة</option>
+                            <option value="animal_welfare">مخاوف تتعلق بسلامة الحيوان</option>
+                            <option value="privacy">معلومات شخصية منشورة</option>
+                            <option value="remove_request">طلب إزالة الإعلان</option>
+                            <option value="other">سبب آخر</option>
+                        </select>
+                    </label>
+                    <label>تفاصيل إضافية (اختياري)
+                        <textarea id="reportDetails" maxlength="500" rows="3" placeholder="اشرح المشكلة دون إضافة معلومات حساسة..."></textarea>
+                    </label>
+                    <label>وسيلة تواصل للمتابعة (اختياري)
+                        <input id="reporterContact" maxlength="120" placeholder="بريد إلكتروني أو رقم واتساب">
+                    </label>
+                </div>
+                <button id="reportSubmit" class="hero-cta listing-submit" type="submit"><i class="fa-solid fa-flag"></i> إرسال البلاغ</button>
+                <small class="listing-privacy-note">يراجع مدير المنصة البلاغات من لوحة Supabase. لا يؤدي البلاغ إلى حذف الإعلان تلقائيًا.</small>
             </form>
         </section>
     </div>
